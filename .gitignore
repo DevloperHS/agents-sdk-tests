@@ -1,0 +1,52 @@
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg
+*.egg-info/
+.eggs/
+dist/
+build/
+pip-wheel-metadata/
+
+# Environment and secrets (keep .env.example if you add one)
+.env
+.env.*
+!.env.example
+
+# Google ADK (sessions, artifacts, local storage under agent roots)
+.adk/
+
+# Tooling / test / typecheck caches
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+.tox/
+.hypothesis/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Editors / IDEs
+.idea/
+.vscode/
+*.swp
+*.swo
