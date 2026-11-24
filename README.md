@@ -1,129 +1,176 @@
-# Composio agent comparison
+<div align="center">
 
-This repository contains several sample agents that use [Composio](https://composio.dev) with different stacks: OpenAI Agents, Google ADK (Gemini), and Claude (Anthropic) via the Claude Agent SDK.
+# Agents SDK Tests
 
-## Prerequisites
+**The same idea built with three agent SDKs, all connected to apps through Composio.**
 
-- Python 3.10+ recommended  
-- A [Composio](https://app.composio.dev) account and API key  
-- Virtual environment (the repo uses `.venv`; keep it out of git)
+OpenAI Agents, Google ADK (Gemini) and the Claude Agent SDK, side by side,<br>
+so you can compare how each one handles tools, sessions and MCP.
 
-## Setup (once)
+<br>
 
-From the repository root (`comparison/`):
+![Python](https://img.shields.io/badge/Python_3.10+-3776AB?style=flat-square&logo=python&logoColor=white)
+![Composio](https://img.shields.io/badge/Composio-000000?style=flat-square&logoColor=white)
+![OpenAI Agents](https://img.shields.io/badge/OpenAI_Agents_SDK-412991?style=flat-square&logo=openai&logoColor=white)
+![Google ADK](https://img.shields.io/badge/Google_ADK-4285F4?style=flat-square&logo=google&logoColor=white)
+![Claude Agent SDK](https://img.shields.io/badge/Claude_Agent_SDK-D97757?style=flat-square&logo=anthropic&logoColor=white)
+![MCP](https://img.shields.io/badge/MCP-555555?style=flat-square)
+![Status: experiments](https://img.shields.io/badge/Status-Experiments-F59E0B?style=flat-square)
 
-```powershell
+[**Agents**](#agents) · [**How it works**](#how-it-works) · [**Getting started**](#getting-started) · [**Running each agent**](#running) · [**Project structure**](#project-structure) · [**Troubleshooting**](#troubleshooting)
+
+</div>
+
+<br>
+
+> [!NOTE]
+> These are test agents for comparing SDKs, not production apps. You need your own Composio account and model keys, and each agent only works once the apps it uses are connected in Composio.
+
+<a id="agents"></a>
+
+## 🤖 Agents
+
+| Agent | SDK and model | Composio toolkits | What it does |
+|:---|:---|:---|:---|
+| 💼 **`openai_agent`** | OpenAI Agents SDK, `gpt-5` | GitHub, Exa, Google Sheets, browser tool | A guided job-search assistant. It asks one onboarding question per turn, finds roles, tracks a shortlist in Sheets and uses the browser to apply when it makes sense. |
+| ✉️ **`google_agent`** | Google ADK, `gemini-2.5-flash` | Gmail | An agent with Composio's Google provider and MCP tools for Gmail search and actions. |
+| 💬 **`claude_oss_contributor/agent.py`** | Claude Agent SDK | GitHub | A plain interactive terminal chat with Claude and Composio MCP. |
+| 🛠️ **`claude_oss_contributor/oss_contributor.py`** | Claude Agent SDK | GitHub, Composio Search (configurable) | An open-source contributor workflow: find issues, read the repo rules, make small changes and prepare a PR. |
+
+<a id="how-it-works"></a>
+
+## ⚙️ How it works
+
+```mermaid
+flowchart LR
+    A["🧑 You<br/>terminal or ADK web"] --> B["🤖 Agent<br/>OpenAI, Google ADK<br/>or Claude SDK"]
+    B <--> C["🔌 Composio<br/>MCP session"]
+    C <--> D["🌐 Your apps<br/>GitHub, Gmail,<br/>Sheets, Exa, browser"]
+```
+
+Each agent opens a Composio session for your user, exposes it to the SDK as MCP tools, and lets the model call them. The setup is the same in all three, so the differences you see come from the SDK and the model.
+
+<a id="getting-started"></a>
+
+## 🚀 Getting started
+
+**Requirements:** Python 3.10+, a [Composio](https://app.composio.dev) account and API key, and a key for the model provider of the agent you want to run.
+
+```bash
+git clone https://github.com/DevloperHS/agents-sdk-tests.git
+cd agents-sdk-tests
 python -m venv .venv
-.\.venv\Scripts\Activate.ps1
+source .venv/bin/activate        # Windows: .\.venv\Scripts\Activate.ps1
 pip install -r requirements.txt
 ```
 
-On macOS/Linux, activate with `source .venv/bin/activate`.
+Put your keys in a `.env` file next to the agent you run. `.env` and `.venv` are git-ignored.
 
----
+<a id="running"></a>
 
-## `openai_agent` — Job search assistant (OpenAI Agents + Composio MCP)
+## ▶️ Running each agent
 
-**What it does:** Runs a **guided job-search flow** using the OpenAI Agents SDK (`gpt-5`), Composio Tool Router over MCP, and toolkits **GitHub**, **Exa**, **Google Sheets**, and **browser_tool**. It walks users through onboarding (one question per turn), then helps discover roles, track a shortlist in Sheets, and use the browser for applications when appropriate.
-
-**Environment variables** (e.g. `openai_agent/.env` or export before running):
+### 💼 `openai_agent`
 
 | Variable | Required |
-|----------|----------|
+|:---|:---:|
 | `COMPOSIO_API_KEY` | Yes |
 | `COMPOSIO_USER_ID` | Yes |
 
-**Run:**
-
-```powershell
-cd openai_agent
-python main.py
+```bash
+python openai_agent/main.py
 ```
 
-Or from the repo root:
+Chat in the terminal. Type `exit`, `quit` or `q` to stop. `openai_agent/tools_slug.py` prints Composio tool metadata for the configured toolkits, which is handy for debugging.
 
-```powershell
-python openai_agent\main.py
-```
-
-Chat in the terminal; use `exit`, `quit`, or `q` to stop.
-
-**Optional utility:** `openai_agent/tools_slug.py` prints Composio tool metadata for the configured toolkits (handy for debugging).
-
----
-
-## `google_agent` — Composio + Gemini (Google ADK)
-
-**What it does:** Defines a **Google ADK** `Agent` using **Gemini** and Composio’s **Google** provider. The session exposes Composio MCP tools for **gmail** (e.g. search/execute tools, connections, remote workbench as exposed by your Composio session).
-
-**Environment variables** (use `google_agent/.env` or the shell):
+### ✉️ `google_agent`
 
 | Variable | Required |
-|----------|----------|
-| `GOOGLE_API_KEY` | Yes (Gemini / Google GenAI) |
+|:---|:---:|
+| `GOOGLE_API_KEY` | Yes |
 | `COMPOSIO_API_KEY` | Yes |
 | `COMPOSIO_USER_ID` | Yes |
 
-**Run — terminal (ADK CLI):**
-
-From the **repository root** (the folder that contains `google_agent/`), not inside `google_agent/`:
+Run from the **repository root**, not from inside `google_agent/`:
 
 ```bash
-adk run google_agent
+adk run google_agent     # terminal
+adk web                  # dev web UI, then pick google_agent
 ```
 
-**Run — web UI (development only):**
-
-```bash
-adk web
-```
-
-Open the URL shown (default `http://127.0.0.1:8000`) and select **`google_agent`**.  
-Do **not** run `adk web` from inside `google_agent/` only; ADK expects a directory that **contains** agent subfolders.
-
----
-
-### `agent.py` — Simple Claude chat with Composio MCP
-
-**What it does:** Interactive CLI using **Claude Agent SDK** + Composio MCP. The code creates a session with the **GitHub** toolkit (connect GitHub in Composio if tools require it).
-
-**Environment variables:**
+### 💬 `claude_oss_contributor`
 
 | Variable | Required |
-|----------|----------|
+|:---|:---:|
 | `COMPOSIO_API_KEY` | Yes |
 | `COMPOSIO_USER_ID` or `USER_ID` | Yes |
-| Anthropic credentials | Required by Claude Agent SDK (e.g. `ANTHROPIC_API_KEY` per SDK docs) |
+| `ANTHROPIC_API_KEY` | Yes (Claude Agent SDK) |
 
-**Run:**
-
-```powershell
-python claude_oss_contributor\agent.py
+```bash
+python claude_oss_contributor/agent.py                 # simple chat
+python -m claude_oss_contributor.oss_contributor       # contributor workflow
 ```
 
-### `oss_contributor.py` — OSS contributor workflow
+`oss_contributor.py` loads `claude_oss_contributor/.env` explicitly. Two optional settings:
 
-**What it does:** Same stack, tuned for **open-source contribution**: discover issues (default toolkits **github** + **composio_search**), read repo rules, implement small changes, and prepare PRs. Optional `OSS_COMPOSIO_TOOLKITS` (comma-separated) overrides default toolkits; `OSS_MAX_TURNS` caps turns (default `40`).
+| Variable | Default | What it does |
+|:---|:---|:---|
+| `OSS_COMPOSIO_TOOLKITS` | `github,composio_search` | Comma-separated toolkits to enable. |
+| `OSS_MAX_TURNS` | `40` | Maximum turns per run. |
 
-Loads env from **`claude_oss_contributor/.env`** explicitly.
+<a id="project-structure"></a>
 
-**Run:**
+## 🗂️ Project structure
 
-```powershell
-python -m claude_oss_contributor.oss_contributor
+```text
+agents-sdk-tests/
+├── openai_agent/
+│   ├── main.py             # Job-search agent
+│   └── tools_slug.py       # Prints toolkit tool metadata
+├── google_agent/
+│   └── agent.py            # Google ADK agent with Gmail tools
+├── claude_oss_contributor/
+│   ├── agent.py            # Simple Claude chat
+│   └── oss_contributor.py  # Open-source contributor workflow
+└── requirements.txt
 ```
 
-Or:
+<a id="troubleshooting"></a>
 
-```powershell
-cd claude_oss_contributor
-python oss_contributor.py
-```
+## 🩹 Troubleshooting
 
----
+<details>
+<summary><b>ADK web says "No agents found"</b></summary>
 
-## Troubleshooting
+<br>
 
-- **ADK web: “No agents found”** — Run `adk web` from the folder that **contains** `google_agent`, not from inside `google_agent`.  
-- **Missing tools / auth** — Connect the relevant apps in the Composio dashboard; some flows use `manage_connections` (OpenAI agent) or manual connection for Gmail/GitHub.  
-- **Secrets** — Keep API keys in `.env` files; this repo’s `.gitignore` ignores `.env` and `.venv`.
+Run `adk web` from the folder that **contains** `google_agent`, not from inside it. ADK looks for agent subfolders.
+
+</details>
+
+<details>
+<summary><b>Missing tools or auth errors</b></summary>
+
+<br>
+
+Connect the relevant apps in the Composio dashboard. Some flows use `manage_connections` (OpenAI agent), and Gmail and GitHub may need a manual connection.
+
+</details>
+
+<details>
+<summary><b>Where do my secrets go?</b></summary>
+
+<br>
+
+In `.env` files only. The repo's `.gitignore` already skips `.env` and `.venv`.
+
+</details>
+
+## 📄 License
+
+No license file has been added yet. Until one is, all rights are reserved by the author.
+
+<div align="center">
+<br>
+<sub>Three SDKs. One tool layer.</sub>
+</div>
